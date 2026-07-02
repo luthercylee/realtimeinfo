@@ -1,0 +1,2324 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>香港資訊板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:      #0d1117;
+      --bg-card:      #161b22;
+      --bg-card2:     #1c2330;
+      --bg-input:     #21262d;
+      --border:       #30363d;
+      --text-primary: #e6edf3;
+      --text-sec:     #8b949e;
+      --text-muted:   #484f58;
+      --accent-blue:  #58a6ff;
+      --accent-teal:  #39d353;
+      --accent-amber: #e3b341;
+      --accent-red:   #f85149;
+      --accent-purple:#bc8cff;
+      --warn-t8:      #ff7b72;
+      --warn-rain-b:  #1f6feb;
+      --warn-rain-r:  #f85149;
+      --warn-rain-a:  #e3b341;
+      --warn-hot:     #f78166;
+      --warn-cold:    #79c0ff;
+      --warn-thunder: #d2a8ff;
+      --warn-fire:    #ff7b72;
+      --warn-landslip:#ffa657;
+      --font-main:    'Noto Sans TC', 'Inter', sans-serif;
+      --radius:       12px;
+      --radius-sm:    8px;
+      --shadow:       0 4px 24px rgba(0,0,0,0.4);
+      /* Tablet portrait: 768x1024 target */
+      --tablet-w:     768px;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== Layout ===== */
+    #app {
+      max-width: var(--tablet-w);
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 0 0 16px;
+    }
+
+    /* ===== Header ===== */
+    #header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      height: 56px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(13,17,23,0.8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    #header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #logo {
+      width: 32px;
+      height: 32px;
+    }
+
+    #header h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.01em;
+    }
+
+    #header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #clock {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: rgba(230,237,243,0.9);
+      font-family: 'Inter', ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.01em;
+      min-width: 88px;
+      text-align: right;
+    }
+
+    #refresh-btn, #settings-btn {
+      background: none;
+      border: none;
+      color: var(--text-sec);
+      border-radius: var(--radius-sm);
+      padding: 8px;
+      cursor: pointer;
+      font-family: var(--font-main);
+      transition: background 0.15s, color 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #refresh-btn:hover, #settings-btn:hover {
+      background: var(--bg-card2);
+      color: var(--text-primary);
+    }
+
+    #refresh-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ===== Update bar ===== */
+    #update-bar {
+      padding: 5px 16px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #countdown-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #countdown-progress {
+      width: 80px;
+      height: 3px;
+      background: var(--bg-input);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    #countdown-fill {
+      height: 100%;
+      background: var(--accent-blue);
+      border-radius: 2px;
+      transition: width 1s linear;
+    }
+
+    /* ===== Main content ===== */
+    #main {
+      flex: 1;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ===== Card ===== */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+    #weather-card, #warnings-card, #forecast-card { overflow: visible; }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px 10px;
+    }
+
+    .card-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-sec);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-body { padding: 0 18px 16px; }
+
+    /* ===== Weather Card ===== */
+    #weather-card {
+      position: relative;
+      min-height: 150px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    #weather-card > .card-header,
+    #weather-card > .card-body { padding: 0; }
+
+    #weather-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #weather-location {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-sec);
+      white-space: nowrap;
+    }
+
+    #weather-hum-pill {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(88,166,255,0.12);
+      border: 1px solid rgba(88,166,255,0.2);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--accent-blue);
+      font-variant-numeric: tabular-nums;
+    }
+
+    #weather-card-bottom {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-top: 18px;
+    }
+
+    #weather-temp-big {
+      display: flex;
+      align-items: flex-start;
+      line-height: 1;
+    }
+
+    #weather-temp-num {
+      font-size: 3.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+
+    #weather-temp-unit {
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: var(--text-sec);
+      margin-top: 6px;
+      margin-left: 2px;
+    }
+
+    #weather-icon-img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4)) brightness(1.1);
+    }
+
+    #weather-glow {
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 130px;
+      height: 130px;
+      background: rgba(88,166,255,0.08);
+      border-radius: 50%;
+      filter: blur(40px);
+      pointer-events: none;
+    }
+
+    #weather-humidity { display: none; }
+
+    .warn-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .warn-tc1    { background: rgba(88,166,255,0.12); color: #79c0ff; border-color: rgba(88,166,255,0.3); }
+    .warn-tc3    { background: rgba(88,166,255,0.18); color: #79c0ff; border-color: rgba(88,166,255,0.4); }
+    .warn-tc8    { background: rgba(248,81,73,0.18); color: #ff7b72; border-color: rgba(248,81,73,0.4); }
+    .warn-tc9    { background: rgba(248,81,73,0.25); color: #ff7b72; border-color: rgba(248,81,73,0.5); }
+    .warn-tc10   { background: rgba(248,81,73,0.35); color: #ff7b72; border-color: rgba(248,81,73,0.6); }
+    .warn-raina  { background: rgba(227,179,65,0.18); color: #e3b341; border-color: rgba(227,179,65,0.4); }
+    .warn-rainr  { background: rgba(248,81,73,0.18); color: #ff7b72; border-color: rgba(248,81,73,0.4); }
+    .warn-rainb  { background: rgba(31,111,235,0.25); color: #79c0ff; border-color: rgba(31,111,235,0.5); }
+    .warn-thunder{ background: rgba(188,140,255,0.18); color: #d2a8ff; border-color: rgba(188,140,255,0.4); }
+    .warn-hot    { background: rgba(247,129,102,0.18); color: #f78166; border-color: rgba(247,129,102,0.4); }
+    .warn-cold   { background: rgba(121,192,255,0.15); color: #79c0ff; border-color: rgba(121,192,255,0.35); }
+    .warn-fire   { background: rgba(255,123,114,0.18); color: #ff7b72; border-color: rgba(255,123,114,0.4); }
+    .warn-landslip { background: rgba(255,166,87,0.18); color: #ffa657; border-color: rgba(255,166,87,0.4); }
+    .warn-monsoon{ background: rgba(88,166,255,0.15); color: #58a6ff; border-color: rgba(88,166,255,0.3); }
+    .warn-default{ background: rgba(139,148,158,0.15); color: #8b949e; border-color: rgba(139,148,158,0.3); }
+
+    .warn-none {
+      font-size: 0.78rem;
+      color: var(--accent-teal);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Special Tips */
+    #tips-section {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+    }
+
+    #tips-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--accent-amber);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 3px;
+    }
+
+    #tips-text {
+      font-size: 0.76rem;
+      color: var(--text-sec);
+      line-height: 1.5;
+    }
+
+    /* ===== Bus Section ===== */
+    #bus-routes-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .bus-route-block {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .bus-route-header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 10px 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bus-route-tag {
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 5px;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .bus-kmb { background: rgba(255,123,114,0.18); color: #ff7b72; border: 1px solid rgba(255,123,114,0.35); }
+    .bus-ctb { background: rgba(88,166,255,0.18); color: #58a6ff; border: 1px solid rgba(88,166,255,0.35); }
+    .bus-nlb { background: rgba(57,211,83,0.18); color: #39d353; border: 1px solid rgba(57,211,83,0.35); }
+
+    .bus-route-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .bus-stop-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bus-dest {
+      font-size: 0.68rem;
+      color: var(--text-sec);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bus-operator-badge {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--bg-input);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .bus-eta-list {
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .eta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .eta-seq {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      width: 18px;
+    }
+
+    .eta-dest {
+      flex: 1;
+      font-size: 0.8rem;
+      color: var(--text-sec);
+      padding-right: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .eta-time {
+      font-size: 0.95rem;
+      font-weight: 700;
+      min-width: 50px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .eta-mins {
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: var(--text-sec);
+    }
+
+    .eta-arriving { color: var(--accent-teal); }
+    .eta-soon     { color: var(--accent-amber); }
+    .eta-normal   { color: var(--text-primary); }
+    .eta-remark   { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+
+    .eta-empty {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding: 6px 0;
+      text-align: center;
+    }
+
+    .bus-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    /* Skeleton pulse */
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+    .skeleton {
+      background: var(--bg-input);
+      border-radius: 4px;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    /* ===== Spinner ===== */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: inline-block;
+    }
+
+    /* ===== Settings Panel ===== */
+    #settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 200;
+      backdrop-filter: blur(4px);
+    }
+
+    #settings-panel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100%;
+      max-width: 420px;
+      height: 100%;
+      background: var(--bg-card);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 0 0 32px;
+    }
+
+    #settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+      z-index: 10;
+    }
+
+    #settings-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    #settings-close {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-sec);
+      border-radius: var(--radius-sm);
+      padding: 5px 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-family: var(--font-main);
+    }
+
+    .settings-section {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .settings-section-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+
+    .settings-field {
+      margin-bottom: 12px;
+    }
+
+    .settings-field:last-child { margin-bottom: 0; }
+
+    .settings-label {
+      font-size: 0.78rem;
+      color: var(--text-sec);
+      margin-bottom: 5px;
+      display: block;
+      font-weight: 500;
+    }
+
+    .settings-input, .settings-select {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      font-family: var(--font-main);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .settings-input:focus, .settings-select:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .settings-select option {
+      background: var(--bg-card);
+    }
+
+    /* Bus route config blocks */
+    #bus-routes-config {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bus-config-block {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      position: relative;
+    }
+
+    .bus-config-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .bus-config-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-sec);
+    }
+
+    .bus-config-remove {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0 2px;
+      line-height: 1;
+    }
+    .bus-config-remove:hover { color: var(--accent-red); }
+
+    .bus-config-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .bus-config-row:last-child { margin-bottom: 0; }
+    .bus-config-full { grid-column: 1/-1; }
+
+    .settings-btn-primary {
+      width: 100%;
+      background: var(--accent-blue);
+      border: none;
+      color: #0d1117;
+      border-radius: var(--radius-sm);
+      padding: 9px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-main);
+      margin-top: 12px;
+      transition: opacity 0.15s;
+    }
+    .settings-btn-primary:hover { opacity: 0.88; }
+
+    .settings-btn-secondary {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-sec);
+      border-radius: var(--radius-sm);
+      padding: 7px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      font-family: var(--font-main);
+    }
+    .settings-btn-secondary:hover { background: var(--border); }
+
+    .settings-hint {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ===== Settings Tabs ===== */
+    #settings-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+      position: sticky;
+      top: 49px;
+      z-index: 9;
+    }
+    .stab {
+      flex: 1;
+      padding: 10px 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: var(--font-main);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .stab.active {
+      color: var(--accent-blue);
+      border-bottom-color: var(--accent-blue);
+    }
+    .stab:hover:not(.active) { color: var(--text-sec); }
+    .stab-content { display: block; }
+
+    /* Visibility toggle row */
+    .stab-visibility-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stab-visibility-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .vis-toggle {
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: var(--font-main);
+      padding: 5px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      background: var(--bg-input);
+      color: var(--text-sec);
+    }
+    .vis-toggle.is-hidden {
+      background: rgba(248,81,73,0.12);
+      color: var(--accent-red);
+      border-color: rgba(248,81,73,0.3);
+    }
+
+    /* ETA lookup helper in settings */
+    #stop-search-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    #stop-search-result {
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: var(--text-sec);
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    .stop-result-item {
+      padding: 5px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .stop-result-item:hover { background: var(--bg-input); border-color: var(--border); }
+    .stop-result-id { color: var(--text-muted); font-size: 0.68rem; margin-left: 4px; }
+
+    /* ===== Error state ===== */
+    .error-state {
+      font-size: 0.78rem;
+      color: var(--accent-red);
+      padding: 8px 0;
+      text-align: center;
+    }
+
+    /* ===== Row 1: side-by-side weather + warnings ===== */
+    #row-weather {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    #warnings-card .card-body { padding: 0 18px 16px; }
+    #weather-temp { display: none; }
+    #weather-inline { display: none; }
+
+    #warnings-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-content: flex-start;
+    }
+
+    /* Forecast card */
+    #forecast-desc {
+      font-size: 0.84rem;
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    /* ===== Responsive tweaks ===== */
+    @media (max-width: 540px) {
+      #row-weather { grid-template-columns: 1fr; }
+      .bus-route-tag { font-size: 0.9rem; }
+    }
+
+    /* ===== MTR Section ===== */
+    .mtr-route-block {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .mtr-route-block:last-child { margin-bottom: 0; }
+
+    .mtr-route-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px 7px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mtr-line-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 5px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .mtr-AEL { background:#00888a; color:#fff; }
+    .mtr-TCL { background:#f7943d; color:#fff; }
+    .mtr-TML { background:#923011; color:#fff; }
+    .mtr-TKL { background:#7d499a; color:#fff; }
+    .mtr-EAL { background:#5eb5e6; color:#fff; }
+    .mtr-SIL { background:#cbd300; color:#222; }
+    .mtr-TWL { background:#e2231a; color:#fff; }
+    .mtr-ISL { background:#005daa; color:#fff; }
+    .mtr-KTL { background:#1daa5b; color:#fff; }
+    .mtr-DRL { background:#eb6ea5; color:#fff; }
+    .mtr-default { background:var(--bg-input); color:var(--text-sec); }
+
+    .mtr-station-info { flex:1; min-width:0; }
+    .mtr-station-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .mtr-line-name {
+      font-size: 0.7rem;
+      color: var(--text-sec);
+    }
+
+    .mtr-directions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .mtr-direction-col {
+      padding: 7px 10px;
+    }
+    .mtr-direction-col:first-child {
+      border-right: 1px solid var(--border);
+    }
+    .mtr-dir-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 5px;
+    }
+    .mtr-train-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .mtr-train-row:last-child { margin-bottom: 0; }
+    .mtr-dest {
+      font-size: 0.78rem;
+      color: var(--text-sec);
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 6px;
+    }
+    .mtr-plat {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-right: 6px;
+      white-space: nowrap;
+    }
+    .mtr-time {
+      font-size: 1rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      min-width: 40px;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .mtr-mins { font-size: 0.65rem; font-weight:400; color: var(--text-sec); }
+    .mtr-arriving { color: var(--accent-teal); }
+    .mtr-soon     { color: var(--accent-amber); }
+    .mtr-normal   { color: var(--text-primary); }
+    .mtr-empty    { font-size: 0.76rem; color: var(--text-muted); padding: 4px 0; }
+    .mtr-delayed  { font-size: 0.68rem; color: var(--accent-red); margin-top: 2px; }
+
+    /* Toast notification */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      padding: 8px 16px;
+      font-size: 0.82rem;
+      z-index: 999;
+      opacity: 0;
+      transition: transform 0.25s, opacity 0.25s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Header -->
+  <div id="header">
+    <div id="header-left">
+      <svg id="logo" viewBox="0 0 32 32" fill="none" aria-label="HK Dashboard" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="8" fill="#1c2330"/>
+        <!-- HK stylised -->
+        <path d="M6 8v16M6 16h7M13 8v16" stroke="#58a6ff" stroke-width="2.2" stroke-linecap="round"/>
+        <!-- Bus -->
+        <rect x="17" y="16" width="10" height="7" rx="1.5" fill="#39d353" opacity="0.9"/>
+        <circle cx="19.5" cy="23" r="1.2" fill="#0d1117"/>
+        <circle cx="24.5" cy="23" r="1.2" fill="#0d1117"/>
+        <rect x="18" y="13" width="8" height="4" rx="1" fill="#39d353" opacity="0.6"/>
+        <!-- Sun -->
+        <circle cx="23" cy="9" r="2.5" fill="#e3b341" opacity="0.9"/>
+        <line x1="23" y1="5" x2="23" y2="4" stroke="#e3b341" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="23" y1="13" x2="23" y2="14" stroke="#e3b341" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="19" y1="9" x2="18" y2="9" stroke="#e3b341" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="27" y1="9" x2="28" y2="9" stroke="#e3b341" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <h1>香港資訊板</h1>
+    </div>
+    <div id="header-right">
+      <div id="clock">--:--:--</div>
+      <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
+      <button id="refresh-btn" onclick="manualRefresh()" aria-label="更新">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+      </button>
+      <button id="settings-btn" onclick="openSettings()" aria-label="設定">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Update bar -->
+  <div id="update-bar">
+    <span id="last-updated">尚未更新</span>
+    <div id="countdown-bar">
+      <span id="countdown-label">下次更新</span>
+      <div id="countdown-progress"><div id="countdown-fill" style="width:100%"></div></div>
+      <span id="countdown-text">--</span>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div id="main">
+
+    <!-- Row 1: 即時天氣 + 生效警告 (side by side) -->
+    <div id="row-weather">
+
+      <!-- Left: 即時天氣 -->
+      <div class="card" id="weather-card">
+        <div id="weather-glow"></div>
+        <!-- Top row: location + humidity pill -->
+        <div id="weather-card-top">
+          <div id="weather-location" class="skeleton" style="width:80px;height:13px;border-radius:4px;">
+          </div>
+          <div id="weather-hum-pill" style="display:none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>
+            <span id="weather-hum-val">--</span>
+          </div>
+        </div>
+        <!-- Bottom row: temp + icon -->
+        <div id="weather-card-bottom">
+          <div id="weather-temp-big">
+            <span id="weather-temp-num" class="skeleton" style="width:90px;height:52px;border-radius:6px;display:block;">　</span>
+            <span id="weather-temp-unit" style="display:none;">°C</span>
+          </div>
+          <img id="weather-icon-img" src="" alt="" style="display:none;">
+        </div>
+        <!-- legacy hidden els for JS compat -->
+        <span id="weather-temp" style="display:none;"></span>
+        <span id="weather-humidity" style="display:none;"></span>
+        <img id="weather-icon" src="" alt="" style="display:none;">
+        <!-- Special Tips -->
+        <div id="tips-section" style="display:none;margin-top:8px;">
+          <div id="tips-label">⚡ 特別天氣提示</div>
+          <div id="tips-text">—</div>
+        </div>
+      </div>
+
+      <!-- Right: 生效警告 -->
+      <div class="card" id="warnings-card">
+        <div class="card-header">
+          <div class="card-title"><span>⚠</span><span>生效警告</span></div>
+        </div>
+        <div class="card-body">
+          <div id="warnings-list">
+            <div class="skeleton" style="width:90px;height:24px;border-radius:20px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /row-weather -->
+
+    <!-- Row 2: 本港地區天氣預報 -->
+    <div class="card" id="forecast-card">
+      <div class="card-header">
+        <div class="card-title"><span>📋</span><span>本港地區天氣預報</span></div>
+        <span id="forecast-period-label" style="font-size:0.72rem;color:var(--text-muted)">—</span>
+      </div>
+      <div class="card-body" style="padding:10px 14px;">
+        <div id="forecast-desc" class="skeleton" style="height:14px;border-radius:4px;margin-bottom:6px;"></div>
+        <div id="forecast-outlook-wrap" style="display:none;margin-top:8px;">
+          <div id="forecast-outlook-label" style="font-size:0.68rem;font-weight:700;color:var(--accent-amber);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">展望</div>
+          <div id="forecast-outlook" style="font-size:0.8rem;color:var(--text-sec);line-height:1.55;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: 巴士班次 -->
+    <div class="card" id="bus-card">
+      <div class="card-header">
+        <div class="card-title"><span>🚌</span><span>巴士班次</span></div>
+        <span id="bus-count-label" style="font-size:0.72rem;color:var(--text-muted)"></span>
+      </div>
+      <div class="card-body" style="padding:8px 10px;">
+        <div id="bus-routes-container">
+          <div class="bus-loading"><div class="spinner"></div> 載入中…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 4: 港鐵班次 -->
+    <div class="card" id="mtr-card">
+      <div class="card-header">
+        <div class="card-title"><span>🚇</span><span>港鐵班次</span></div>
+        <span id="mtr-count-label" style="font-size:0.72rem;color:var(--text-muted)"></span>
+      </div>
+      <div class="card-body" style="padding:8px 10px;">
+        <div id="mtr-routes-container">
+          <div class="bus-loading"><div class="spinner"></div> 載入中…</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Settings Overlay -->
+<div id="settings-overlay" onclick="handleOverlayClick(event)">
+  <div id="settings-panel">
+    <div id="settings-header">
+      <h2>&#x2699; 後台設定</h2>
+      <button id="settings-close" onclick="closeSettings()">&#x2715; 關閉</button>
+    </div>
+
+    <!-- Tab Bar -->
+    <div id="settings-tabs">
+      <button class="stab active" data-tab="general" onclick="switchSettingsTab('general')">更新設定</button>
+      <button class="stab" data-tab="bus" onclick="switchSettingsTab('bus')">巴士資料</button>
+      <button class="stab" data-tab="mtr" onclick="switchSettingsTab('mtr')">港鐵資料</button>
+    </div>
+
+    <!-- Tab: General -->
+    <div id="stab-general" class="stab-content">
+      <div class="settings-section">
+        <div class="settings-section-title">一般設定</div>
+        <div class="settings-field">
+          <label class="settings-label">自動更新間隔（分鐘）</label>
+          <select class="settings-select" id="cfg-interval">
+            <option value="1">1 分鐘</option>
+            <option value="2">2 分鐘</option>
+            <option value="5">5 分鐘</option>
+            <option value="10" selected>10 分鐘</option>
+            <option value="15">15 分鐘</option>
+            <option value="30">30 分鐘</option>
+          </select>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">天氣設定</div>
+        <div class="settings-field">
+          <label class="settings-label">天氣觀測站</label>
+          <select class="settings-select" id="cfg-weather-station">
+            <option value="HKO">香港天文台 (HKO)</option>
+            <option value="KP">京士柏 (Kings Park)</option>
+            <option value="HKP">香港公園 (Hong Kong Park)</option>
+            <option value="HKS">黃竹坑 (Wong Chuk Hang)</option>
+            <option value="HPV">跑馬地 (Happy Valley)</option>
+            <option value="JKB">將軍澳 (Tseung Kwan O)</option>
+            <option value="KLT">九龍城 (Kowloon City)</option>
+            <option value="KTG">觀塘 (Kwun Tong)</option>
+            <option value="SSP">深水埗 (Sham Shui Po)</option>
+            <option value="WTS">黃大仙 (Wong Tai Sin)</option>
+            <option value="SHA">沙田 (Sha Tin)</option>
+            <option value="TUN">屯門 (Tuen Mun)</option>
+            <option value="YLP">元朗公園 (Yuen Long Park)</option>
+            <option value="TW">荃灣城門谷 (Tsuen Wan Shing Mun Valley)</option>
+            <option value="TWN">荃灣可觀 (Tsuen Wan Mong Tseng Wai)</option>
+            <option value="TY1">青衣 (Tsing Yi)</option>
+            <option value="CLK">赤鱲角 (Chek Lap Kok)</option>
+            <option value="CCH">長洲 (Cheung Chau)</option>
+            <option value="SKG">西貢 (Sai Kung)</option>
+            <option value="SWH">筲箕灣 (Shau Kei Wan)</option>
+            <option value="STY">赤柱 (Stanley)</option>
+            <option value="YCT">大埔 (Tai Po)</option>
+            <option value="PLC">大美督 (Tai Mei Tuk)</option>
+            <option value="TKL">打鼓嶺 (Ta Kwu Ling)</option>
+            <option value="SEK">石崗 (Shek Kong)</option>
+            <option value="SE1">啟德跑道公園 (Kai Tak Runway Park)</option>
+            <option value="LFS">流浮山 (Lau Fau Shan)</option>
+            <option value="EPC">平洲 (Ping Chau)</option>
+            <option value="KAT">吉澳 (Kat O)</option>
+            <option value="STK">沙頭角 (Sha Tau Kok)</option>
+            <option value="TBT">尖鼻咀 (Tsim Bei Tsui)</option>
+            <option value="TAP">塔門 (Tap Mun)</option>
+            <option value="YNF">元五墳 (Yuen Ng Fan)</option>
+          </select>
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">顯示語言</label>
+          <select class="settings-select" id="cfg-lang">
+            <option value="tc">繁體中文</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+      <div class="settings-section" style="border-bottom:none;">
+        <button class="settings-btn-primary" onclick="saveSettings()">&#x2713; 儲存並套用設定</button>
+      </div>
+    </div>
+
+    <!-- Tab: Bus -->
+    <div id="stab-bus" class="stab-content" style="display:none;">
+      <div class="settings-section">
+        <div class="stab-visibility-row">
+          <span class="stab-visibility-label">顯示巴士班次欄</span>
+          <button id="bus-vis-btn" class="vis-toggle" onclick="toggleBusVisible()">隱藏</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">巴士路線設定</div>
+        <div id="bus-routes-config"></div>
+        <button class="settings-btn-secondary" onclick="addBusRoute()" style="margin-top:10px;width:100%">
+          ＋ 新增巴士路線
+        </button>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label" style="font-weight:600;color:var(--accent-blue);">&#x1F50D; 車站 ID 查詢工具</div>
+        <div class="settings-hint" style="margin-bottom:6px;">選擇巴士公司及輸入路線號，搜尋並複製車站 ID</div>
+        <div class="bus-config-row" style="margin-bottom:6px;">
+          <select class="settings-select" id="search-company">
+            <option value="KMB">九巴 KMB</option>
+            <option value="CTB">城巴 CTB</option>
+          </select>
+          <input type="text" class="settings-input" id="search-route-input" placeholder="路線號 (如 1A)">
+        </div>
+        <select class="settings-select" id="search-direction" style="margin-bottom:6px;">
+          <option value="outbound">往外線 (outbound)</option>
+          <option value="inbound">往內線 (inbound)</option>
+        </select>
+        <button class="settings-btn-secondary" onclick="lookupStops()" style="width:100%">搜尋車站</button>
+        <div id="stop-search-result"></div>
+      </div>
+      <div class="settings-section" style="border-bottom:none;">
+        <button class="settings-btn-primary" onclick="saveSettings()">&#x2713; 儲存並套用設定</button>
+      </div>
+    </div>
+
+    <!-- Tab: MTR -->
+    <div id="stab-mtr" class="stab-content" style="display:none;">
+      <div class="settings-section">
+        <div class="stab-visibility-row">
+          <span class="stab-visibility-label">顯示港鐵班次欄</span>
+          <button id="mtr-vis-btn" class="vis-toggle" onclick="toggleMTRVisible()">隱藏</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">港鐵車站設定</div>
+        <div id="mtr-routes-config"></div>
+        <button class="settings-btn-secondary" onclick="addMTRRoute()" style="margin-top:10px;width:100%">
+          ＋ 新增港鐵車站
+        </button>
+      </div>
+      <div class="settings-section" style="border-bottom:none;">
+        <button class="settings-btn-primary" onclick="saveSettings()">&#x2713; 儲存並套用設定</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ===== Default Config =====
+const DEFAULT_CONFIG = {
+  interval: 10,
+  weatherStation: 'HKO',
+  lang: 'tc',
+  busRoutes: [],
+  mtrRoutes: [],
+  busVisible: true,
+  mtrVisible: true
+};
+
+let config = loadConfig();
+let autoRefreshTimer = null;
+let countdownTimer = null;
+let countdownTotal = 0;
+let countdownRemaining = 0;
+
+// ===== Persistence =====
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem('hk_dashboard_cfg');
+    if (raw) return { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
+  } catch(e) {}
+  return { ...DEFAULT_CONFIG };
+}
+
+function saveConfigToStorage(cfg) {
+  localStorage.setItem('hk_dashboard_cfg', JSON.stringify(cfg));
+}
+
+// ===== Clock =====
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ===== Countdown =====
+function startCountdown(minutes) {
+  clearInterval(countdownTimer);
+  countdownTotal = minutes * 60;
+  countdownRemaining = countdownTotal;
+
+  function tick() {
+    countdownRemaining = Math.max(0, countdownRemaining - 1);
+    const pct = (countdownRemaining / countdownTotal) * 100;
+    document.getElementById('countdown-fill').style.width = pct + '%';
+    const m = Math.floor(countdownRemaining / 60);
+    const s = countdownRemaining % 60;
+    document.getElementById('countdown-text').textContent =
+      m > 0 ? `${m}分${String(s).padStart(2,'0')}秒` : `${s}秒`;
+  }
+  tick();
+  countdownTimer = setInterval(tick, 1000);
+}
+
+// ===== Auto Refresh =====
+function scheduleAutoRefresh() {
+  clearInterval(autoRefreshTimer);
+  const ms = config.interval * 60 * 1000;
+  startCountdown(config.interval);
+  autoRefreshTimer = setInterval(() => {
+    fetchAll();
+    startCountdown(config.interval);
+  }, ms);
+}
+
+// ===== Manual Refresh =====
+function manualRefresh() {
+  fetchAll();
+  startCountdown(config.interval);
+}
+
+// ===== CORS Proxy helper =====
+// Use allOrigins proxy to bypass CORS in local HTML files
+function corsUrl(url) {
+  // Try direct first (works when served from same origin or CORS allowed)
+  // HKO and data.etabus.gov.hk allow CORS so we call directly
+  return url;
+}
+
+// ===== Weather Fetch =====
+async function fetchWeather() {
+  const lang = config.lang === 'tc' ? 'tc' : 'en';
+  const station = config.weatherStation || 'HKO';
+
+  try {
+    // Current weather reading
+    const timeout = ms => new Promise((_, r) => setTimeout(() => r(new Error('Timeout')), ms));
+    const safeFetch = url => Promise.race([fetch(url), timeout(12000)]);
+
+    const [rhrRes, warnRes, swtRes, flwRes] = await Promise.all([
+      safeFetch(`https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=${lang}`),
+      safeFetch(`https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=warnsum&lang=${lang}`),
+      safeFetch(`https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=swt&lang=${lang}`),
+      safeFetch(`https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=flw&lang=${lang}`)
+    ]);
+
+    const rhr  = await rhrRes.json();
+    const warn = await warnRes.json();
+    const swt  = await swtRes.json();
+    const flw  = await flwRes.json();
+
+    renderWeather(rhr, warn, swt, flw, station, lang);
+  } catch(e) {
+    console.error('Weather fetch error', e);
+    showWeatherError(e.message);
+  }
+}
+
+// Station display names
+const STATION_NAMES = {
+  HKO:'香港天文台',KP:'京士柏',HKP:'香港公園',HKS:'黃竹坑',HPV:'跑馬地',
+  JKB:'將軍澳',KLT:'九龍城',KTG:'觀塘',SSP:'深水埗',WTS:'黃大仙',
+  SHA:'沙田',TUN:'屯門',YLP:'元朗公園',TW:'荃灣城門谷',TWN:'荃灣可觀',
+  TY1:'青衣',CLK:'赤鱲角',CCH:'長洲',SKG:'西貢',SWH:'筲箕灣',
+  STY:'赤柱',YCT:'大埔',PLC:'大美督',TKL:'打鼓嶺',SEK:'石崗',
+  SE1:'啟德跑道公園',LFS:'流浮山',EPC:'平洲',KAT:'吉澳',STK:'沙頭角',
+  TBT:'尖鼻咀',TAP:'塔門',YNF:'元五墳'
+};
+
+const STATION_NAMES_EN = {
+  HKO:'Hong Kong Observatory',KP:'Kings Park',HKP:'HK Park',HKS:'Wong Chuk Hang',
+  HPV:'Happy Valley',JKB:'Tseung Kwan O',KLT:'Kowloon City',KTG:'Kwun Tong',
+  SSP:'Sham Shui Po',WTS:'Wong Tai Sin',SHA:'Sha Tin',TUN:'Tuen Mun',
+  YLP:'Yuen Long Park',TW:'Tsuen Wan S.M.V.',TWN:'Tsuen Wan Ho Koon',TY1:'Tsing Yi',
+  CLK:'Chek Lap Kok',CCH:'Cheung Chau',SKG:'Sai Kung',SWH:'Sai Wan Ho',
+  STY:'Stanley',YCT:'Tai Po',PLC:'Tai Mei Tuk',TKL:'Ta Kwu Ling',SEK:'Shek Kong',
+  SE1:'Kai Tak Runway Park',LFS:'Lau Fau Shan',EPC:'Ping Chau',KAT:'Kat O',
+  STK:'Sha Tau Kok',TBT:'Tsim Bei Tsui',TAP:'Tap Mun',YNF:'Yuen Ng Fan'
+};
+
+function getStationName(code, lang) {
+  if (lang === 'en') return STATION_NAMES_EN[code] || code;
+  return STATION_NAMES[code] || code;
+}
+
+function renderWeather(rhr, warn, swt, flw, station, lang) {
+  // Station code → Chinese place name (matches exactly what HKO API returns in .place)
+  // Note: some stations (SEK,EPC,KAT,STK,TBT,TAP,YNF) don't appear in temp data
+  const STATION_PLACE_TC = {
+    HKO:'香港天文台', KP:'京士柏',  HKP:'香港公園',    HKS:'黃竹坑',
+    HPV:'跑馬地',    JKB:'將軍澳',  KLT:'九龍城',      KTG:'觀塘',
+    SSP:'深水埗',    WTS:'黃大仙',  SHA:'沙田',         TUN:'屯門',
+    YLP:'元朗公園',  TW:'荃灣城門谷',TWN:'荃灣可觀',   TY1:'青衣',
+    CLK:'赤鱲角',   CCH:'長洲',    SKG:'西貢',         SWH:'筲箕灣',
+    STY:'赤柱',     YCT:'大埔',    PLC:'大美督',       TKL:'打鼓嶺',
+    SE1:'啟德跑道公園', LFS:'流浮山'
+  };
+
+  // Temperature
+  const tempData = (rhr.temperature || {}).data || [];
+  const humData  = (rhr.humidity   || {}).data || [];
+
+  // Match by Chinese place name from lookup table
+  const stationPlaceTC = STATION_PLACE_TC[station] || null;
+
+  // Only find entry if we have a known place name for this station
+  let tempEntry = stationPlaceTC
+    ? tempData.find(d => d.place === stationPlaceTC) || null
+    : null;
+
+  // Humidity only from HKO (only station that provides it)
+  let humEntry = humData.find(d => d.place === '香港天文台') || humData[0] || null;
+
+  const rawTemp = tempEntry ? tempEntry.value : null;
+  const rawHum  = humEntry  ? humEntry.value  : null;
+  const temp  = rawTemp !== null ? rawTemp.toFixed(1) : '--';
+  const hum   = rawHum  !== null ? rawHum.toFixed(1)  : '--';
+  // Display name: use matched place if found, else station label
+  const place = tempEntry
+    ? tempEntry.place
+    : (stationPlaceTC || getStationName(station, lang));
+
+  // Icon
+  const icons = rhr.icon || [];
+  const iconNum = icons[0] || 50;
+  const iconUrl = `https://www.hko.gov.hk/images/wxicon/pic${iconNum}.png`;
+
+  // Description
+  const desc = (rhr.recordDesc || '');
+
+  // Location (top-left with map-pin SVG)
+  const locEl = document.getElementById('weather-location');
+  locEl.className = '';
+  locEl.style.cssText = '';
+  locEl.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>' + place;
+
+  // Humidity pill (top-right)
+  const humPill = document.getElementById('weather-hum-pill');
+  const humVal  = document.getElementById('weather-hum-val');
+  if (humPill && humVal) { humVal.textContent = hum + '%'; humPill.style.display = 'flex'; }
+
+  // Temperature (bottom-left)
+  const tempNumEl = document.getElementById('weather-temp-num');
+  const tempUnitEl = document.getElementById('weather-temp-unit');
+  if (tempNumEl) { tempNumEl.textContent = temp; tempNumEl.className = ''; tempNumEl.style.cssText = ''; }
+  if (tempUnitEl) { tempUnitEl.style.display = ''; }
+
+  // Icon (bottom-right)
+  const iconImgEl = document.getElementById('weather-icon-img');
+  if (iconImgEl) { iconImgEl.src = iconUrl; iconImgEl.style.display = 'block'; }
+
+  // Warnings (now in separate card)
+  renderWarnings(warn, lang);
+
+  // Special Tips
+  const tipsDesc = swt.desc || swt.desc1 || (Array.isArray(swt) ? swt[0]?.desc : null) || '';
+  const tipsEl = document.getElementById('tips-section');
+  if (tipsDesc) {
+    tipsEl.style.display = 'block';
+    document.getElementById('tips-text').textContent = tipsDesc;
+  } else {
+    tipsEl.style.display = 'none';
+  }
+
+  // Local Forecast
+  renderForecast(flw, lang);
+
+  updateLastUpdated();
+}
+
+function renderForecast(flw, lang) {
+  if (!flw) return;
+  const period  = flw.forecastPeriod || '';
+  const desc    = flw.forecastDesc   || '';
+  const outlook = flw.outlook        || '';
+
+  const periodEl = document.getElementById('forecast-period-label');
+  if (periodEl) periodEl.textContent = period;
+
+  const descEl = document.getElementById('forecast-desc');
+  if (descEl) {
+    descEl.textContent = desc;
+    descEl.className = '';
+    descEl.style.cssText = '';
+  }
+
+  const outlookWrap = document.getElementById('forecast-outlook-wrap');
+  const outlookEl   = document.getElementById('forecast-outlook');
+  if (outlook && outlookWrap && outlookEl) {
+    outlookWrap.style.display = 'block';
+    outlookEl.textContent = outlook;
+  } else if (outlookWrap) {
+    outlookWrap.style.display = 'none';
+  }
+}
+
+function renderWarnings(warn, lang) {
+  const listEl = document.getElementById('warnings-list');
+
+  const WARNING_CONFIG = {
+    WTCSGNL: {
+      getClass: (code) => {
+        if (code === 'TC1') return 'warn-tc1';
+        if (code === 'TC3') return 'warn-tc3';
+        if (['TC8NE','TC8SE','TC8SW','TC8NW'].includes(code)) return 'warn-tc8';
+        if (code === 'TC9') return 'warn-tc9';
+        if (code === 'TC10') return 'warn-tc10';
+        return 'warn-default';
+      },
+      getName: (w, lang) => w.name || (lang === 'tc' ? '熱帶氣旋警告' : 'TC Warning')
+    },
+    WRAIN: {
+      getClass: (code) => {
+        if (code === 'WRAINA') return 'warn-raina';
+        if (code === 'WRAINR') return 'warn-rainr';
+        if (code === 'WRAINB') return 'warn-rainb';
+        return 'warn-default';
+      },
+      getName: (w, lang) => w.name || (lang === 'tc' ? '暴雨警告' : 'Rainstorm Warning')
+    },
+    WTS: { cls: 'warn-thunder', icon: '⚡',
+      name: { tc: '雷暴警告', en: 'Thunderstorm Warning' } },
+    WHOT: { cls: 'warn-hot', icon: '🔥',
+      name: { tc: '酷熱天氣警告', en: 'Very Hot Weather Warning' } },
+    WCOLD: { cls: 'warn-cold', icon: '❄',
+      name: { tc: '寒冷天氣警告', en: 'Cold Weather Warning' } },
+    WFIRE: { cls: 'warn-fire', icon: '🔥',
+      name: { tc: '火災危險警告', en: 'Fire Danger Warning' } },
+    WL: { cls: 'warn-landslip', icon: '⛰',
+      name: { tc: '山泥傾瀉警告', en: 'Landslip Warning' } },
+    WMSGNL: { cls: 'warn-monsoon', icon: '🌬',
+      name: { tc: '強烈季候風信號', en: 'Strong Monsoon Signal' } },
+    WFNTSA: { cls: 'warn-default', icon: '🌊',
+      name: { tc: '新界北部水浸特別報告', en: 'Flooding in NT (Special)' } },
+    WFROST: { cls: 'warn-cold', icon: '❄',
+      name: { tc: '霜凍警告', en: 'Frost Warning' } },
+    WTMW: { cls: 'warn-tc10', icon: '🌊',
+      name: { tc: '海嘯警告', en: 'Tsunami Warning' } },
+  };
+
+  const badges = [];
+
+  for (const [key, val] of Object.entries(warn)) {
+    if (!val || typeof val !== 'object') continue;
+    if (val.actionCode === 'CANCEL') continue;
+
+    const cfg = WARNING_CONFIG[key];
+    if (!cfg) continue;
+
+    let cls = '', displayName = '';
+
+    if (key === 'WTCSGNL' || key === 'WRAIN') {
+      cls = cfg.getClass(val.code || '');
+      displayName = cfg.getName(val, lang);
+      if (val.code) displayName += ` (${val.code.replace('WRAINA','黃色').replace('WRAINR','紅色').replace('WRAINB','黑色')})`;
+    } else {
+      cls = cfg.cls;
+      displayName = (typeof cfg.name === 'object' ? cfg.name[lang] : cfg.name) || val.name || key;
+      if (cfg.icon) displayName = cfg.icon + ' ' + displayName;
+    }
+
+    badges.push(`<span class="warn-badge ${cls}">${displayName}</span>`);
+  }
+
+  if (badges.length === 0) {
+    listEl.innerHTML = `<span class="warn-none">✓ ${lang === 'tc' ? '目前沒有生效警告' : 'No active warnings'}</span>`;
+  } else {
+    listEl.innerHTML = badges.join('');
+  }
+}
+
+function showWeatherError(msg) {
+  const numEl = document.getElementById('weather-temp-num');
+  if (numEl) { numEl.textContent = '--'; numEl.className = ''; numEl.style.cssText = 'color:var(--accent-red);'; }
+  document.getElementById('warnings-list').innerHTML = '<span style="color:var(--text-muted);font-size:0.78rem">—</span>';
+  const descEl = document.getElementById('forecast-desc');
+  if (descEl) { descEl.textContent = '天氣預報讀取失敗'; descEl.className = ''; }
+}
+
+// ===== Bus Fetch =====
+// Cache for route stops to avoid repeated calls
+const stopCache = {};
+
+async function fetchKMBStops(route, serviceType, direction) {
+  const cacheKey = `kmb_${route}_${serviceType}_${direction}`;
+  if (stopCache[cacheKey]) return stopCache[cacheKey];
+  // KMB route-stop API accepts 'outbound'/'inbound' directly
+  const res = await fetch(
+    `https://data.etabus.gov.hk/v1/transport/kmb/route-stop/${route}/${direction}/${serviceType}`
+  );
+  const json = await res.json();
+  const stops = (json.data || []);
+  stopCache[cacheKey] = stops;
+  return stops;
+}
+
+async function fetchKMBStopInfo(stopId) {
+  const cacheKey = `kmbstop_${stopId}`;
+  if (stopCache[cacheKey]) return stopCache[cacheKey];
+  const res = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop/${stopId}`);
+  const json = await res.json();
+  stopCache[cacheKey] = json.data;
+  return json.data;
+}
+
+async function fetchKMBETA(stopId, route, serviceType) {
+  const res = await fetch(
+    `https://data.etabus.gov.hk/v1/transport/kmb/eta/${stopId}/${route}/${serviceType}`
+  );
+  const json = await res.json();
+  return json.data || [];
+}
+
+async function fetchCTBStops(route, direction) {
+  const cacheKey = `ctb_stops_${route}_${direction}`;
+  if (stopCache[cacheKey]) return stopCache[cacheKey];
+  const res = await fetch(
+    `https://rt.data.gov.hk/v2/transport/citybus/route-stop/CTB/${route}/${direction}`
+  );
+  const json = await res.json();
+  stopCache[cacheKey] = json.data || [];
+  return json.data || [];
+}
+
+async function fetchCTBStopInfo(stopId) {
+  const cacheKey = `ctbstop_${stopId}`;
+  if (stopCache[cacheKey]) return stopCache[cacheKey];
+  const res = await fetch(`https://rt.data.gov.hk/v2/transport/citybus/stop/${stopId}`);
+  const json = await res.json();
+  stopCache[cacheKey] = json.data;
+  return json.data;
+}
+
+async function fetchCTBETA(stopId, route) {
+  const res = await fetch(
+    `https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/${stopId}/${route}`
+  );
+  const json = await res.json();
+  return json.data || [];
+}
+
+function etaMinutes(etaStr) {
+  if (!etaStr) return null;
+  const diff = (new Date(etaStr) - new Date()) / 1000 / 60;
+  return Math.round(diff);
+}
+
+function etaDisplay(mins, lang) {
+  if (mins === null) return { text: '—', cls: '' };
+  if (mins <= 1) return { text: lang === 'tc' ? '即將到達' : 'Arriving', cls: 'eta-arriving' };
+  if (mins <= 5) return { text: `${mins}`, cls: 'eta-soon', suffix: lang === 'tc' ? '分鐘' : 'min' };
+  return { text: `${mins}`, cls: 'eta-normal', suffix: lang === 'tc' ? '分鐘' : 'min' };
+}
+
+async function fetchBuses() {
+  const container = document.getElementById('bus-routes-container');
+  const routes = config.busRoutes || [];
+  const lang = config.lang;
+
+  if (!routes.length || !routes.some(r => r.stopId)) {
+    container.innerHTML = `<div class="eta-empty" style="padding:20px 0;">尚未設定任何巴士路線<br><span style="color:var(--text-muted);font-size:0.72rem;">請點擊右上角⚙設定</span></div>`;
+    return;
+  }
+
+  // Show loading skeletons
+  container.innerHTML = routes.filter(r => r.stopId).map(() => `
+    <div class="bus-route-block">
+      <div class="bus-route-header">
+        <div class="skeleton" style="width:52px;height:30px;border-radius:6px;"></div>
+        <div style="flex:1;padding-left:10px;">
+          <div class="skeleton" style="width:140px;height:14px;border-radius:4px;margin-bottom:5px;"></div>
+          <div class="skeleton" style="width:90px;height:10px;border-radius:4px;"></div>
+        </div>
+      </div>
+      <div class="bus-eta-list" style="gap:8px;">
+        ${[1,2,3].map(()=>`<div class="skeleton" style="height:16px;border-radius:4px;"></div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  const activeRoutes = routes.filter(r => r.stopId && r.route && r.company);
+  const results = await Promise.allSettled(activeRoutes.map(r => fetchSingleBusRoute(r)));
+
+  let html = '';
+  results.forEach((res, i) => {
+    if (res.status === 'fulfilled') {
+      html += res.value;
+    } else {
+      const r = activeRoutes[i];
+      html += `
+        <div class="bus-route-block">
+          <div class="bus-route-header">
+            <span class="bus-route-tag bus-${r.company.toLowerCase()}">${r.route}</span>
+            <div class="bus-route-info"><div class="bus-stop-name">${r.stopName || r.stopId}</div></div>
+          </div>
+          <div class="bus-eta-list"><div class="error-state">⚠ 無法取得 ETA 資料</div></div>
+        </div>`;
+    }
+  });
+
+  container.innerHTML = html || `<div class="eta-empty" style="padding:20px 0;">尚未設定有效路線<br><span style="color:var(--text-muted);font-size:0.72rem;">請在設定中填寫車站 ID</span></div>`;
+
+  document.getElementById('bus-count-label').textContent =
+    `${activeRoutes.length} 條路線`;
+}
+
+async function fetchSingleBusRoute(r) {
+  const lang = config.lang;
+  let etas = [];
+  let stopName = r.stopName || r.stopId;
+  let dest = '';
+
+  try {
+    if (r.company === 'KMB') {
+      const svcType = r.serviceType || '1';
+      etas = await fetchKMBETA(r.stopId, r.route, svcType);
+      // Get stop name if not set
+      if (!r.stopName) {
+        try {
+          const info = await fetchKMBStopInfo(r.stopId);
+          stopName = (lang === 'tc' ? info?.name_tc : info?.name_en) || r.stopId;
+        } catch(e) {}
+      }
+    } else if (r.company === 'CTB') {
+      etas = await fetchCTBETA(r.stopId, r.route);
+      if (!r.stopName) {
+        try {
+          const info = await fetchCTBStopInfo(r.stopId);
+          stopName = (lang === 'tc' ? info?.name_tc : info?.name_en) || r.stopId;
+        } catch(e) {}
+      }
+    }
+  } catch(e) {
+    throw e;
+  }
+
+  // Filter to next 3 ETAs and parse
+  const now = new Date();
+  const etaRows = (etas || [])
+    .filter(e => e.eta)
+    .slice(0, 3)
+    .map((e, i) => {
+      const mins = etaMinutes(e.eta);
+      const dsp = etaDisplay(mins, lang);
+      const destText = (lang === 'tc' ? e.dest_tc : e.dest_en) || e.dest_en || e.dest_tc || '';
+      const remark = (lang === 'tc' ? e.rmk_tc : e.rmk_en) || '';
+      return { seq: i+1, mins, dsp, destText, remark };
+    });
+
+  if (etas.length > 0) {
+    dest = (lang === 'tc' ? etas[0]?.dest_tc : etas[0]?.dest_en) || '';
+  }
+
+  const etaHTML = etaRows.length > 0
+    ? etaRows.map(row => `
+        <div class="eta-row">
+          <span class="eta-seq">${row.seq}</span>
+          <span class="eta-dest">${row.destText}</span>
+          <span class="eta-time ${row.dsp.cls}">
+            ${row.dsp.text}
+            ${row.dsp.suffix ? `<span class="eta-mins">${row.dsp.suffix}</span>` : ''}
+          </span>
+        </div>
+        ${row.remark ? `<div class="eta-remark">${row.remark}</div>` : ''}
+      `).join('')
+    : `<div class="eta-empty">${lang === 'tc' ? '目前沒有班次資料' : 'No ETA available'}</div>`;
+
+  const dirLabel = r.direction === 'inbound'
+    ? (lang === 'tc' ? '往內' : 'Inbound')
+    : (lang === 'tc' ? '往外' : 'Outbound');
+
+  return `
+    <div class="bus-route-block">
+      <div class="bus-route-header">
+        <span class="bus-route-tag bus-${r.company.toLowerCase()}">${r.route}</span>
+        <div class="bus-route-info">
+          <div class="bus-stop-name">${stopName}</div>
+          <div class="bus-dest">${dest ? `→ ${dest}` : dirLabel} &nbsp; <span style="color:var(--text-muted)">${r.company}</span></div>
+        </div>
+      </div>
+      <div class="bus-eta-list">${etaHTML}</div>
+    </div>`;
+}
+
+
+// ===== MTR Data =====
+const MTR_LINES = {
+  AEL: { tc:'機場快綫', en:'Airport Express',    color:'#00888a' },
+  TCL: { tc:'東涌綫',   en:'Tung Chung Line',    color:'#f7943d' },
+  TML: { tc:'屯馬綫',   en:'Tuen Ma Line',        color:'#923011' },
+  TKL: { tc:'將軍澳綫', en:'Tseung Kwan O Line', color:'#7d499a' },
+  EAL: { tc:'東鐵綫',   en:'East Rail Line',      color:'#5eb5e6' },
+  SIL: { tc:'南港島綫', en:'South Island Line',   color:'#cbd300' },
+  TWL: { tc:'荃灣綫',   en:'Tsuen Wan Line',      color:'#e2231a' },
+  ISL: { tc:'港島綫',   en:'Island Line',         color:'#005daa' },
+  KTL: { tc:'觀塘綫',   en:'Kwun Tong Line',      color:'#1daa5b' },
+  DRL: { tc:'迪士尼綫', en:'Disneyland Resort Line',color:'#eb6ea5'}
+};
+
+const MTR_STATIONS = {
+  ADM:'金鐘',AIR:'機場',AUS:'柯士甸',AWE:'博覽館',CAB:'銅鑼灣',
+  CEN:'中環',CHH:'彩虹',CHW:'柴灣',CIO:'第一城',CKT:'車公廟',
+  CSW:'長沙灣',DIH:'鑽石山',DIS:'迪士尼',ETS:'尖東',EXC:'會展',
+  FAN:'粉嶺',FOH:'炮台山',FOT:'火炭',HAH:'坑口',HEO:'恆安',
+  HFC:'杏花邨',HIK:'顯徑',HKU:'香港大學',HOK:'香港',HOM:'何文田',
+  HUH:'紅磡',JOR:'佐敦',KAT:'啟德',KET:'堅尼地城',KOB:'九龍灣',
+  KOT:'九龍塘',KOW:'九龍',KSR:'錦上路',KWF:'葵芳',KWH:'葵興',
+  KWT:'觀塘',LAK:'茘景',LAT:'藍田',LCK:'茘枝角',LET:'利東',
+  LHP:'康城',LMC:'落馬洲',LOF:'樂富',LOP:'朗屏',LOW:'羅湖',
+  MEF:'美孚',MKK:'旺角東',MOK:'旺角',MOS:'馬鞍山',NAC:'南昌',
+  NOP:'北角',NTK:'牛頭角',OCP:'海洋公園',OLY:'奧運',POA:'寶琳',
+  PRE:'太子',QUB:'鰂魚涌',SHM:'石門',SHS:'上水',SHT:'沙田',
+  SHW:'上環',SIH:'兆康',SKM:'石硤尾',SKW:'筲箕灣',SOH:'海怡半島',
+  SSP:'深水埗',STW:'沙田圍',SUN:'欣澳',SUW:'宋皇臺',SWH:'西灣河',
+  SYP:'西營盤',TAK:'太古',TAP:'大埔墟',TAW:'大圍',TIH:'天后',
+  TIK:'調景嶺',TIS:'天水圍',TKO:'將軍澳',TKW:'土瓜灣',TSH:'大水坑',
+  TST:'尖沙咀',TSW:'荃灣',TSY:'青衣',TUC:'東涌',TUM:'屯門',
+  TWH:'大窩口',TWO:'太和',TWW:'荃灣西',UNI:'大學',WAC:'灣仔',
+  WCH:'黃竹坑',WHA:'黃埔',WKS:'烏溪沙',WTS:'黃大仙',YAT:'油塘',
+  YMT:'油麻地',YUL:'元朗'
+};
+
+const MTR_STATIONS_EN = {
+  ADM:'Admiralty',AIR:'Airport',AUS:'Austin',AWE:'AsiaWorld-Expo',
+  CAB:'Causeway Bay',CEN:'Central',CHH:'Choi Hung',CHW:'Chai Wan',
+  CIO:'City One',CKT:'Che Kung Temple',CSW:'Cheung Sha Wan',
+  DIH:'Diamond Hill',DIS:'Disneyland Resort',ETS:'East TST',EXC:'Exhibition Centre',
+  FAN:'Fanling',FOH:'Fortress Hill',FOT:'Fo Tan',HAH:'Hang Hau',
+  HEO:'Heng On',HFC:'Heng Fa Chuen',HIK:'Hin Keng',HKU:'HKU',
+  HOK:'Hong Kong',HOM:'Ho Man Tin',HUH:'Hung Hom',JOR:'Jordan',
+  KAT:'Kai Tak',KET:'Kennedy Town',KOB:'Kowloon Bay',KOT:'Kowloon Tong',
+  KOW:'Kowloon',KSR:'Kam Sheung Road',KWF:'Kwai Fong',KWH:'Kwai Hing',
+  KWT:'Kwun Tong',LAK:'Lai King',LAT:'Lam Tin',LCK:'Lai Chi Kok',
+  LET:'Lei Tung',LHP:'LOHAS Park',LMC:'Lok Ma Chau',LOF:'Lok Fu',
+  LOP:'Long Ping',LOW:'Lo Wu',MEF:'Mei Foo',MKK:'Mong Kok East',
+  MOK:'Mong Kok',MOS:'Ma On Shan',NAC:'Nam Cheong',NOP:'North Point',
+  NTK:'Ngau Tau Kok',OCP:'Ocean Park',OLY:'Olympic',POA:'Po Lam',
+  PRE:'Prince Edward',QUB:'Quarry Bay',SHM:'Shek Mun',SHS:'Sheung Shui',
+  SHT:'Sha Tin',SHW:'Sheung Wan',SIH:'Siu Hong',SKM:'Shek Kip Mei',
+  SKW:'Shau Kei Wan',SOH:'South Horizons',SSP:'Sham Shui Po',
+  STW:'Sha Tin Wai',SUN:'Sunny Bay',SUW:'Sung Wong Toi',SWH:'Sai Wan Ho',
+  SYP:'Sai Ying Pun',TAK:'Tai Koo',TAP:'Tai Po Market',TAW:'Tai Wai',
+  TIH:'Tin Hau',TIK:'Tiu Keng Leng',TIS:'Tin Shui Wai',TKO:'Tseung Kwan O',
+  TKW:'To Kwa Wan',TSH:'Tai Shui Hang',TST:'Tsim Sha Tsui',TSW:'Tsuen Wan',
+  TSY:'Tsing Yi',TUC:'Tung Chung',TUM:'Tuen Mun',TWH:'Tai Wo Hau',
+  TWO:'Tai Wo',TWW:'Tsuen Wan West',UNI:'University',WAC:'Wan Chai',
+  WCH:'Wong Chuk Hang',WHA:'Whampoa',WKS:'Wu Kai Sha',WTS:'Wong Tai Sin',
+  YAT:'Yau Tong',YMT:'Yau Ma Tei',YUL:'Yuen Long'
+};
+
+function getMTRStationName(code, lang) {
+  return lang === 'tc' ? (MTR_STATIONS[code] || code) : (MTR_STATIONS_EN[code] || code);
+}
+
+async function fetchMTR() {
+  const routes = (config.mtrRoutes || []).filter(r => r.line && r.station);
+  const container = document.getElementById('mtr-routes-container');
+  if (!routes.length) {
+    container.innerHTML = '<div class="eta-empty" style="padding:18px 0;">尚未設定任何港鐵路線<br><span style="color:var(--text-muted);font-size:0.72rem;">請點擊右上角⚙設定</span></div>';
+    document.getElementById('mtr-count-label').textContent = '';
+    return;
+  }
+
+  // Show skeletons
+  container.innerHTML = routes.map(() =>
+    '<div class="mtr-route-block"><div class="mtr-route-header">'
+    + '<div class="skeleton" style="width:52px;height:22px;border-radius:5px;"></div>'
+    + '<div style="flex:1;padding-left:10px;"><div class="skeleton" style="width:100px;height:13px;border-radius:4px;margin-bottom:4px;"></div>'
+    + '<div class="skeleton" style="width:70px;height:10px;border-radius:4px;"></div></div></div>'
+    + '<div class="mtr-directions"><div class="mtr-direction-col"><div class="skeleton" style="height:12px;border-radius:3px;margin-bottom:5px;"></div>'
+    + '<div class="skeleton" style="height:12px;border-radius:3px;"></div></div>'
+    + '<div class="mtr-direction-col"><div class="skeleton" style="height:12px;border-radius:3px;margin-bottom:5px;"></div>'
+    + '<div class="skeleton" style="height:12px;border-radius:3px;"></div></div></div></div>'
+  ).join('');
+
+  const results = await Promise.allSettled(routes.map(r => fetchSingleMTRRoute(r)));
+  let html = '';
+  results.forEach((res, i) => {
+    if (res.status === 'fulfilled') {
+      html += res.value;
+    } else {
+      const r = routes[i];
+      html += '<div class="mtr-route-block"><div class="mtr-route-header">'
+        + '<span class="mtr-line-badge mtr-' + r.line + '">' + r.line + '</span>'
+        + '<div class="mtr-station-info"><div class="mtr-station-name">' + getMTRStationName(r.station, config.lang) + '</div></div>'
+        + '</div><div style="padding:8px 12px;font-size:0.78rem;color:var(--accent-red)">⚠ 無法取得班次資料</div></div>';
+    }
+  });
+  container.innerHTML = html || '<div class="eta-empty" style="padding:18px 0;">沒有班次資料</div>';
+  document.getElementById('mtr-count-label').textContent = routes.length + ' 個車站';
+}
+
+async function fetchSingleMTRRoute(r) {
+  const lang = config.lang;
+  const apiLang = lang === 'tc' ? 'TC' : 'EN';
+  const url = 'https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=' + r.line + '&sta=' + r.station + '&lang=' + apiLang;
+  const timeout = ms => new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout')), ms));
+  const res = await Promise.race([fetch(url), timeout(10000)]);
+  const json = await res.json();
+
+  if (!json || json.status !== 1) {
+    throw new Error(json.message || 'API error');
+  }
+
+  const key = r.line + '-' + r.station;
+  const stationData = (json.data || {})[key] || {};
+  const isDelay = json.isdelay === 'Y';
+
+  const lineName = lang === 'tc'
+    ? (MTR_LINES[r.line]?.tc || r.line)
+    : (MTR_LINES[r.line]?.en || r.line);
+  const staName = getMTRStationName(r.station, lang);
+
+  function buildDirHTML(trains, dirLabel) {
+    var h = '<div class="mtr-direction-col">'
+      + '<div class="mtr-dir-label">' + dirLabel + '</div>';
+    if (!trains || !trains.length) {
+      h += '<div class="mtr-empty">-</div>';
+    } else {
+      trains.slice(0, 3).forEach(function(t) {
+        if (t.valid !== 'Y') return;
+        var mins = parseInt(t.ttnt, 10);
+        var destName = getMTRStationName(t.dest, lang);
+        var cls = mins <= 1 ? 'mtr-arriving' : mins <= 4 ? 'mtr-soon' : 'mtr-normal';
+        var timeText = mins <= 1
+          ? (lang === 'tc' ? '即將' : 'Arr')
+          : mins + '<span class="mtr-mins">' + (lang === 'tc' ? '分' : 'm') + '</span>';
+        h += '<div class="mtr-train-row">'
+          + '<span class="mtr-dest">' + destName + '</span>'
+          + '<span class="mtr-plat">' + (lang === 'tc' ? '月台' : 'Plt') + t.plat + '</span>'
+          + '<span class="mtr-time ' + cls + '">' + timeText + '</span>'
+          + '</div>';
+      });
+    }
+    h += '</div>';
+    return h;
+  }
+
+  // Determine direction labels
+  var downLabel = lang === 'tc' ? '↓ 往市區方向' : '↓ To Urban';
+  var upLabel   = lang === 'tc' ? '↑ 往外線方向' : '↑ To Terminus';
+  // For lines with specific named directions
+  var dirNames = {
+    TWL: ['↓ 往中環', '↑ 往荃灣'],
+    ISL: ['↓ 往柴灣', '↑ 往堅尼地城'],
+    KTL: ['↓ 往觀塘', '↑ 往調景嶺'],
+    EAL: ['↓ 往紅磡', '↑ 往羅湖/落馬洲'],
+    TML: ['↓ 往屯門', '↑ 往烏溪沙'],
+    TKL: ['↓ 往康城', '↑ 往寶琳'],
+    TCL: ['↓ 往東涌', '↑ 往香港'],
+    AEL: ['↓ 往機場', '↑ 往香港'],
+    SIL: ['↓ 往海怡半島', '↑ 往金鐘'],
+    DRL: ['↓ 往迪士尼', '↑ 往欣澳']
+  };
+  if (dirNames[r.line] && lang === 'tc') {
+    downLabel = dirNames[r.line][0];
+    upLabel   = dirNames[r.line][1];
+  }
+
+  var html = '<div class="mtr-route-block">'
+    + '<div class="mtr-route-header">'
+    + '<span class="mtr-line-badge mtr-' + r.line + '">' + r.line + '</span>'
+    + '<div class="mtr-station-info">'
+    + '<div class="mtr-station-name">' + staName + '</div>'
+    + '<div class="mtr-line-name">' + lineName + '</div>'
+    + '</div>'
+    + (isDelay ? '<span style="font-size:0.65rem;color:var(--accent-red);padding:2px 6px;background:rgba(248,81,73,0.12);border-radius:4px;">延誤</span>' : '')
+    + '</div>'
+    + '<div class="mtr-directions">'
+    + buildDirHTML(stationData.DOWN, downLabel)
+    + buildDirHTML(stationData.UP, upLabel)
+    + '</div>'
+    + '</div>';
+
+  return html;
+}
+
+// ===== Fetch All =====
+async function fetchAll() {
+  const btn = document.getElementById('refresh-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 更新中…';
+
+  await Promise.allSettled([fetchWeather(), fetchBuses(), fetchMTR()]);
+
+  btn.disabled = false;
+  btn.textContent = '↻ 更新';
+  updateLastUpdated();
+}
+
+function updateLastUpdated() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('last-updated').textContent = `最後更新：${h}:${m}:${s}`;
+}
+
+// ===== Settings =====
+let tempBusRoutes = [];
+let tempMTRRoutes = [];
+
+// ===== MTR Settings Helpers =====
+function mtrLineOptions(selectedLine) {
+  return Object.keys(MTR_LINES).map(function(code) {
+    var sel = code === selectedLine ? ' selected' : '';
+    return '<option value="' + code + '"' + sel + '>' + code + ' ' + MTR_LINES[code].tc + '</option>';
+  }).join('');
+}
+
+function mtrStationOptions(line, selectedSta) {
+  var lineStations = {
+    AEL:['HOK','KOW','TSY','AIR','AWE'],
+    TCL:['HOK','KOW','OLY','NAC','TSY','SUN','TUC'],
+    TML:['TUM','SIH','TIS','LOP','YUL','KSR','TWW','MEF','NAC','AUS','HOM','HUH','ETS','DIH','KAT','SUW','TKW','SHM','SHT','TAW','CKT','HIK','FOT','TWO','TAP','UNI','FAN','SHS','WKS'],
+    TKL:['NOP','QUB','YAT','TIK','TKO','HAH','POA','LHP'],
+    EAL:['ADM','MKK','KOT','TAW','SHT','FOT','UNI','TWO','TAP','SHS','FAN','LOW','LMC'],
+    SIL:['ADM','OCP','WCH','LET','SOH'],
+    TWL:['CEN','ADM','TST','JOR','YMT','MOK','PRE','SKM','LAK','MEF','KWH','KWF','TWH','TSW'],
+    ISL:['KET','SYP','HKU','SHW','CEN','ADM','WAC','CAB','TIH','FOH','NOP','QUB','TAK','SWH','SKW','CHW'],
+    KTL:['WHA','HOM','KOT','LOF','WTS','DIH','CHH','KOB','NTK','KWT','LAT','YAT','TIK'],
+    DRL:['SUN','DIS']
+  };
+  var codes = lineStations[line] || Object.keys(MTR_STATIONS);
+  return codes.map(function(code) {
+    var sel = code === selectedSta ? ' selected' : '';
+    var name = MTR_STATIONS[code] || code;
+    return '<option value="' + code + '"' + sel + '>' + name + ' (' + code + ')</option>';
+  }).join('');
+}
+
+function mtrBlockHTML(r, i) {
+  return '<div class="bus-config-block" id="mtr-block-' + i + '">'
+    + '<div class="bus-config-block-header">'
+    + '<span class="bus-config-label">\u6e2f\u9435\u8eca\u7ad9 ' + (i + 1) + '</span>'
+    + '<button class="bus-config-remove" onclick="removeMTRRoute(' + i + ')">\u2715</button>'
+    + '</div>'
+    + '<div class="bus-config-row">'
+    + '<div><label class="settings-label">\u8def\u7dab</label>'
+    + '<select class="settings-select" id="mc-line-' + i + '" onchange="updateTempMTRRoute(' + i + ');renderMTRConfigBlocks()">'
+    + mtrLineOptions(r.line)
+    + '</select></div>'
+    + '<div><label class="settings-label">\u8eca\u7ad9</label>'
+    + '<select class="settings-select" id="mc-sta-' + i + '" onchange="updateTempMTRRoute(' + i + ')">'
+    + mtrStationOptions(r.line, r.station)
+    + '</select></div>'
+    + '</div>'
+    + '</div>';
+}
+
+function renderMTRConfigBlocks() {
+  var container = document.getElementById('mtr-routes-config');
+  container.innerHTML = tempMTRRoutes.map(function(r, i) { return mtrBlockHTML(r, i); }).join('');
+}
+
+function addMTRRoute() {
+  tempMTRRoutes.forEach(function(_, i) { updateTempMTRRoute(i); });
+  tempMTRRoutes.push({ line: 'TWL', station: 'TSW' });
+  renderMTRConfigBlocks();
+  setTimeout(function() {
+    var panel = document.getElementById('settings-panel');
+    panel.scrollTop = panel.scrollHeight;
+  }, 50);
+}
+
+function removeMTRRoute(i) {
+  tempMTRRoutes.forEach(function(_, j) { updateTempMTRRoute(j); });
+  tempMTRRoutes.splice(i, 1);
+  renderMTRConfigBlocks();
+}
+
+function updateTempMTRRoute(i) {
+  var r = tempMTRRoutes[i];
+  var lineEl = document.getElementById('mc-line-' + i);
+  var staEl  = document.getElementById('mc-sta-'  + i);
+  if (lineEl) r.line    = lineEl.value;
+  if (staEl)  r.station = staEl.value;
+}
+
+// ===== Tab Switching =====
+function switchSettingsTab(tab) {
+  ['general','bus','mtr'].forEach(function(t) {
+    document.getElementById('stab-' + t).style.display = (t === tab) ? 'block' : 'none';
+    var btn = document.querySelector('.stab[data-tab="' + t + '"]');
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+  // Reset scroll
+  document.getElementById('settings-panel').scrollTop = 0;
+}
+
+// ===== Visibility toggles =====
+function applyVisibility() {
+  var busCard = document.getElementById('bus-card');
+  var mtrCard = document.getElementById('mtr-card');
+  if (busCard) busCard.style.display = (config.busVisible !== false) ? '' : 'none';
+  if (mtrCard) mtrCard.style.display = (config.mtrVisible !== false) ? '' : 'none';
+}
+
+function updateVisButtons() {
+  var busBtn = document.getElementById('bus-vis-btn');
+  var mtrBtn = document.getElementById('mtr-vis-btn');
+  var busHidden = config.busVisible === false;
+  var mtrHidden = config.mtrVisible === false;
+  if (busBtn) {
+    busBtn.textContent = busHidden ? '\u986f\u793a' : '\u96b1\u85cf';
+    busBtn.classList.toggle('is-hidden', busHidden);
+  }
+  if (mtrBtn) {
+    mtrBtn.textContent = mtrHidden ? '\u986f\u793a' : '\u96b1\u85cf';
+    mtrBtn.classList.toggle('is-hidden', mtrHidden);
+  }
+}
+
+function toggleBusVisible() {
+  config.busVisible = (config.busVisible === false) ? true : false;
+  applyVisibility();
+  updateVisButtons();
+}
+
+function toggleMTRVisible() {
+  config.mtrVisible = (config.mtrVisible === false) ? true : false;
+  applyVisibility();
+  updateVisButtons();
+}
+
+function openSettings() {
+  tempBusRoutes = JSON.parse(JSON.stringify(config.busRoutes || []));
+  tempMTRRoutes = JSON.parse(JSON.stringify(config.mtrRoutes || []));
+
+  document.getElementById('cfg-interval').value = config.interval;
+  document.getElementById('cfg-weather-station').value = config.weatherStation;
+  document.getElementById('cfg-lang').value = config.lang;
+
+  renderBusConfigBlocks();
+  renderMTRConfigBlocks();
+  updateVisButtons();
+  switchSettingsTab('general');
+  document.getElementById('settings-overlay').style.display = 'block';
+  document.getElementById('stop-search-result').innerHTML = '';
+}
+
+function closeSettings() {
+  document.getElementById('settings-overlay').style.display = 'none';
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('settings-overlay')) closeSettings();
+}
+
+function busBlockHTML(r, i) {
+  var s1 = r.serviceType !== '2' ? ' selected' : '';
+  var s2 = r.serviceType === '2' ? ' selected' : '';
+  var svcRow = r.company === 'KMB'
+    ? '<div class="bus-config-row"><div class="bus-config-full">'
+      + '<label class="settings-label">服務類型 (Service Type)</label>'
+      + '<select class="settings-select" id="bc-svc-' + i + '" onchange="updateTempRoute(' + i + ')">'
+      + '<option value="1"' + s1 + '>1 (正常班次)</option>'
+      + '<option value="2"' + s2 + '>2 (特別班次)</option>'
+      + '</select></div></div>'
+    : '';
+  return '<div class="bus-config-block" id="bus-block-' + i + '">'
+    + '<div class="bus-config-block-header">'
+    + '<span class="bus-config-label">路線 ' + (i + 1) + '</span>'
+    + '<button class="bus-config-remove" onclick="removeBusRoute(' + i + ')">✕</button>'
+    + '</div>'
+    + '<div class="bus-config-row">'
+    + '<div><label class="settings-label">巴士公司</label>'
+    + '<select class="settings-select" id="bc-company-' + i + '" onchange="updateTempRoute(' + i + ')">'
+    + '<option value="KMB"' + (r.company === 'KMB' ? ' selected' : '') + '>九巴 KMB</option>'
+    + '<option value="CTB"' + (r.company === 'CTB' ? ' selected' : '') + '>城巴 CTB</option>'
+    + '</select></div>'
+    + '<div><label class="settings-label">路線號碼</label>'
+    + '<input type="text" class="settings-input" id="bc-route-' + i + '" value="' + (r.route || '') + '" placeholder="如 1A" oninput="updateTempRoute(' + i + ')">'
+    + '</div></div>'
+    + '<div class="bus-config-row"><div class="bus-config-full">'
+    + '<label class="settings-label">方向</label>'
+    + '<select class="settings-select" id="bc-dir-' + i + '" onchange="updateTempRoute(' + i + ')">'
+    + '<option value="outbound"' + (r.direction !== 'inbound' ? ' selected' : '') + '>往外 (outbound)</option>'
+    + '<option value="inbound"' + (r.direction === 'inbound' ? ' selected' : '') + '>往內 (inbound)</option>'
+    + '</select></div></div>'
+    + svcRow
+    + '<div class="bus-config-row"><div class="bus-config-full">'
+    + '<label class="settings-label">車站 ID <span style="color:var(--text-muted)">(可用下方工具查詢)</span></label>'
+    + '<input type="text" class="settings-input" id="bc-stop-' + i + '" value="' + (r.stopId || '') + '" placeholder="如 FA01-S-1250-0" oninput="updateTempRoute(' + i + ')">'
+    + '</div></div>'
+    + '<div class="bus-config-row"><div class="bus-config-full">'
+    + '<label class="settings-label">車站名稱（可選，留空自動取得）</label>'
+    + '<input type="text" class="settings-input" id="bc-name-' + i + '" value="' + (r.stopName || '') + '" placeholder="自動取得" oninput="updateTempRoute(' + i + ')">'
+    + '</div></div>'
+    + '</div>';
+}
+
+function renderBusConfigBlocks() {
+  var container = document.getElementById('bus-routes-config');
+  container.innerHTML = tempBusRoutes.map(function(r, i) { return busBlockHTML(r, i); }).join('');
+}
+
+function updateTempRoute(i) {
+  const r = tempBusRoutes[i];
+  r.company   = document.getElementById(`bc-company-${i}`)?.value || r.company;
+  r.route     = document.getElementById(`bc-route-${i}`)?.value   || '';
+  r.direction = document.getElementById(`bc-dir-${i}`)?.value     || 'outbound';
+  r.serviceType = document.getElementById(`bc-svc-${i}`)?.value   || '1';
+  r.stopId    = document.getElementById(`bc-stop-${i}`)?.value    || '';
+  r.stopName  = document.getElementById(`bc-name-${i}`)?.value    || '';
+}
+
+function addBusRoute() {
+  // Read current values first
+  tempBusRoutes.forEach((_, i) => updateTempRoute(i));
+  tempBusRoutes.push({ company: 'KMB', route: '', serviceType: '1', stopId: '', stopName: '', direction: 'outbound' });
+  renderBusConfigBlocks();
+  // Scroll to bottom
+  setTimeout(() => {
+    const panel = document.getElementById('settings-panel');
+    panel.scrollTop = panel.scrollHeight;
+  }, 50);
+}
+
+function removeBusRoute(i) {
+  tempBusRoutes.forEach((_, j) => updateTempRoute(j));
+  tempBusRoutes.splice(i, 1);
+  renderBusConfigBlocks();
+}
+
+function saveSettings() {
+  // Read all temp values
+  tempBusRoutes.forEach((_, i) => updateTempRoute(i));
+  tempMTRRoutes.forEach(function(_, i) { updateTempMTRRoute(i); });
+
+  config.interval       = parseInt(document.getElementById('cfg-interval').value) || 10;
+  config.weatherStation = document.getElementById('cfg-weather-station').value;
+  config.lang           = document.getElementById('cfg-lang').value;
+  config.busRoutes      = tempBusRoutes;
+  config.mtrRoutes      = tempMTRRoutes;
+  // busVisible / mtrVisible already updated live via toggles; just persist
+
+  saveConfigToStorage(config);
+  applyVisibility();
+  closeSettings();
+
+  // Clear stop cache on setting change
+  Object.keys(stopCache).forEach(k => delete stopCache[k]);
+
+  scheduleAutoRefresh();
+  fetchAll();
+  showToast('設定已儲存並套用 ✓');
+}
+
+// ===== Stop lookup tool =====
+async function lookupStops() {
+  const company  = document.getElementById('search-company').value;
+  const route    = document.getElementById('search-route-input').value.trim().toUpperCase();
+  const direction= document.getElementById('search-direction').value;
+  const resultEl = document.getElementById('stop-search-result');
+
+  if (!route) {
+    resultEl.innerHTML = '<span style="color:var(--accent-amber)">請輸入路線號</span>';
+    return;
+  }
+
+  resultEl.innerHTML = '<div class="bus-loading"><div class="spinner"></div> 搜尋中…</div>';
+
+  try {
+    let stops = [];
+    if (company === 'KMB') {
+      const data = await fetchKMBStops(route, '1', direction);
+      // Get stop names
+      const names = await Promise.allSettled(
+        data.slice(0,30).map(s => fetchKMBStopInfo(s.stop))
+      );
+      stops = data.slice(0,30).map((s, i) => ({
+        id: s.stop,
+        seq: s.seq,
+        name: names[i].status === 'fulfilled'
+          ? (config.lang === 'tc' ? names[i].value?.name_tc : names[i].value?.name_en) || s.stop
+          : s.stop
+      }));
+    } else {
+      const data = await fetchCTBStops(route, direction);
+      const names = await Promise.allSettled(
+        data.slice(0,30).map(s => fetchCTBStopInfo(s.stop))
+      );
+      stops = data.slice(0,30).map((s, i) => ({
+        id: s.stop,
+        seq: s.seq,
+        name: names[i].status === 'fulfilled'
+          ? (config.lang === 'tc' ? names[i].value?.name_tc : names[i].value?.name_en) || s.stop
+          : s.stop
+      }));
+    }
+
+    if (!stops.length) {
+      resultEl.innerHTML = '<span style="color:var(--text-muted)">找不到班次資料，請確認路線及方向</span>';
+      return;
+    }
+
+    resultEl.innerHTML = stops.map(s => `
+      <div class="stop-result-item" onclick="copyStopId('${s.id}', '${s.name.replace(/'/g,"\\'")}')">
+        <span>${s.seq}. ${s.name}</span>
+        <span class="stop-result-id">${s.id}</span>
+      </div>
+    `).join('');
+  } catch(e) {
+    resultEl.innerHTML = `<span style="color:var(--accent-red)">錯誤：${e.message}</span>`;
+  }
+}
+
+function copyStopId(stopId, stopName) {
+  navigator.clipboard.writeText(stopId).then(() => {
+    showToast(`已複製車站 ID：${stopId}`);
+  }).catch(() => {
+    showToast(`車站 ID：${stopId}`);
+  });
+}
+
+// ===== Toast =====
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ===== Init =====
+function init() {
+  applyVisibility();
+  fetchAll();
+  scheduleAutoRefresh();
+}
+
+init();
+</script>
+</body>
+</html>
